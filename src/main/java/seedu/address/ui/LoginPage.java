@@ -1,7 +1,5 @@
 package seedu.address.ui;
-import static seedu.address.commons.core.CipherUnit.decrypt;
-
-import java.io.File;
+//@@author yangminxingnus
 import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -10,6 +8,7 @@ import com.google.common.eventbus.Subscribe;
 
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -34,10 +33,8 @@ import seedu.address.model.theme.Theme;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.AccountsStorage;
 import seedu.address.storage.AddressBookStorage;
-import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
-import seedu.address.storage.UserPrefsStorage;
 import seedu.address.storage.XmlAddressBookStorage;
 
 /**
@@ -45,7 +42,6 @@ import seedu.address.storage.XmlAddressBookStorage;
  */
 public class LoginPage extends UiPart<Region> {
 
-    public static final String DEFAULT_PAGE = "default.html";
     private static final String ICON = "/images/address_book_32.png";
     private static final String FXML = "LoginPage.fxml";
     private static final int MIN_HEIGHT = 600;
@@ -108,24 +104,13 @@ public class LoginPage extends UiPart<Region> {
      */
     @FXML
     private void handleLoginEvent() throws IOException {
-        logger.info("Trying to login");
         String uname = username.getText();
         String pword = password.getText();
         if (checkValid(uname, pword)) {
 
-            String path = "data/" + uname + "addressbook.xml";
-            String tempPath = "data/temp.xml";
-
-            File addressBookFile = new File(path);
-            if (addressBookFile.exists()) {
-                decrypt(path);
-                logger.info("File decypted");
-            }
-
-            UserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(config.getUserPrefsFilePath());
+            String path = "data/" + uname + ".xml";
             AddressBookStorage addressBookStorage = new XmlAddressBookStorage(path);
 
-            //storage.setUserPrefsStorage(userPrefsStorage);
             prefs.setAddressBookFilePath(path);
             storage.setAddressBookStorage(addressBookStorage);
 
@@ -133,10 +118,15 @@ public class LoginPage extends UiPart<Region> {
             logic = new LogicManager(model);
 
             mainWindow = new MainWindow(primaryStage, config, storage, prefs, logic, accPrefs, uiManager);
+            uiManager.setMainWindow(mainWindow);
             mainWindow.show(); //This should be called before creating other UI parts
             mainWindow.fillInnerParts();
         } else {
-            logger.info("Wrong name or password!");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(null);
+            alert.setTitle("Incorrect username or password.");
+            alert.setContentText("Your username or password is not correct, please try again.");
+            alert.showAndWait();
         }
     }
 
@@ -145,7 +135,6 @@ public class LoginPage extends UiPart<Region> {
      */
     @FXML
     private void handleRegisterEvent() {
-        logger.info("Trying to register");
         RegisterPage registerPage = new RegisterPage(primaryStage, config, storage, prefs, logic, accPrefs, uiManager);
         this.hide();
         registerPage.show();
@@ -200,7 +189,7 @@ public class LoginPage extends UiPart<Region> {
     }
 
     /**
-    * release the resources
+     * release the resources
      */
     void releaseResources() {
         if (mainWindow != null) {
@@ -239,14 +228,11 @@ public class LoginPage extends UiPart<Region> {
         try {
             addressBookOptional = storage.readAddressBook();
             if (!addressBookOptional.isPresent()) {
-                logger.info("Data file not found. Will be starting with a sample AddressBook");
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataConversionException e) {
-            logger.warning("Data file not in the correct format. Will be starting with an empty AddressBook");
             initialData = new AddressBook();
         } catch (IOException e) {
-            logger.warning("Problem while reading from the file. Will be starting with an empty AddressBook");
             initialData = new AddressBook();
         }
         return new ModelManager(initialData, userPrefs);
@@ -266,3 +252,4 @@ public class LoginPage extends UiPart<Region> {
         password.setStyle(fxFormatFontSize);
     }
 }
+//@@author
