@@ -1,44 +1,7 @@
 # pjunwei95
-###### /java/seedu/address/logic/commands/CancelClearCommandTest.java
+###### \java\seedu\address\logic\commands\ClearPopupCommandTest.java
 ``` java
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
-
-import org.junit.Test;
-
-import seedu.address.logic.CommandHistory;
-import seedu.address.logic.UndoRedoStack;
-import seedu.address.model.Model;
-import seedu.address.model.ModelManager;
-import seedu.address.model.UserPrefs;
-
-public class CancelClearCommandTest {
-
-    @Test
-    public void execute_emptyAddressBook_success() {
-        Model model = new ModelManager();
-        assertCommandSuccess(prepareCommand(model), model, CancelClearCommand.MESSAGE_FAILURE, model);
-    }
-
-    @Test
-    public void execute_nonEmptyAddressBook_success() {
-        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        assertCommandSuccess(prepareCommand(model), model, CancelClearCommand.MESSAGE_FAILURE, model);
-    }
-
-    /**
-     * Generates a new {@code CancelClearCommand} which upon execution, retains the contents in {@code model}.
-     */
-    private CancelClearCommand prepareCommand(Model model) {
-        CancelClearCommand command = new CancelClearCommand();
-        command.setData(model, new CommandHistory(), new UndoRedoStack());
-        return command;
-    }
-}
-```
-###### /java/seedu/address/logic/commands/ClearPopupCommandTest.java
-``` java
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static org.junit.Assert.assertEquals;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.Test;
@@ -52,35 +15,37 @@ import seedu.address.model.UserPrefs;
 public class ClearPopupCommandTest {
 
     @Test
-    public void execute_emptyAddressBook_success() {
+    public void execute_emptyAddressBook() {
         Model model = new ModelManager();
-        assertCommandSuccess(prepareCommand(model), model, ClearPopupCommand.MESSAGE_SUCCESS, model);
+        ClearPopupCommand clearPopupCommand = new ClearPopupCommand();
+        assertEquals(prepareCommand(model, clearPopupCommand), clearPopupCommand);
     }
 
     @Test
-    public void execute_nonEmptyAddressBook_success() {
+    public void execute_nonEmptyAddressBook() {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        assertCommandSuccess(prepareCommand(model), model, ClearPopupCommand.MESSAGE_SUCCESS, model);
+        ClearPopupCommand clearPopupCommand = new ClearPopupCommand();
+        assertEquals(prepareCommand(model, clearPopupCommand), clearPopupCommand);
     }
 
     /**
-     * Generates a new {@code ClearCommand} which upon execution, clears the contents in {@code model}.
+     * Generates a new {@code ClearPopupCommand} which upon execution, clears the contents in {@code model}.
      */
-    private ClearPopupCommand prepareCommand(Model model) {
+    private ClearPopupCommand prepareCommand(Model model, ClearPopupCommand clearPopupCommand) {
         ClearPopupCommand command = new ClearPopupCommand();
         command.setData(model, new CommandHistory(), new UndoRedoStack());
-        return command;
+        return clearPopupCommand;
     }
 }
 ```
-###### /java/seedu/address/logic/commands/CommandTestUtil.java
+###### \java\seedu\address\logic\commands\CommandTestUtil.java
 ``` java
         TAG_DESC_AMY = new DeleteTagDescriptorBuilder()
                 .withTags(VALID_TAG_FRIEND).build();
         TAG_DESC_BOB = new DeleteTagDescriptorBuilder()
                 .withTags(VALID_TAG_HUSBAND, VALID_TAG_FRIEND).build();
 ```
-###### /java/seedu/address/logic/commands/CommandTestUtil.java
+###### \java\seedu\address\logic\commands\CommandTestUtil.java
 ``` java
 
         VALID_TAGLIST_1 = new HashSet<>();
@@ -174,31 +139,8 @@ public class ClearPopupCommandTest {
 
         assert model.getFilteredPersonList().size() == 1;
     }
-    /**
-     * Updates {@code model}'s filtered list to show only the first reminder in the {@code model}'s address book.
-     */
-    public static void showFirstReminderOnly(Model model) {
-        ReadOnlyReminder reminder = model.getAddressBook().getReminderList().get(0);
-        final String[] splitDetails = reminder.getDetails().details.split("\\s+");
-        model.updateFilteredReminderList(new DetailsContainsKeywordsPredicate(Arrays.asList(splitDetails[0])));
-
-        assert model.getFilteredReminderList().size() == 1;
-    }
-
-    /**
-     * Deletes the first person in {@code model}'s filtered list from {@code model}'s address book.
-     */
-    public static void deleteFirstPerson(Model model) {
-        ReadOnlyPerson firstPerson = model.getFilteredPersonList().get(0);
-        try {
-            model.deletePerson(firstPerson);
-        } catch (PersonNotFoundException pnfe) {
-            throw new AssertionError("Person in filtered list must exist in model.", pnfe);
-        }
-    }
-}
 ```
-###### /java/seedu/address/logic/commands/DeleteTagCommandTest.java
+###### \java\seedu\address\logic\commands\DeleteTagCommandTest.java
 ``` java
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -221,6 +163,7 @@ import seedu.address.logic.commands.DeleteTagCommand.DeleteTagDescriptor;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.ReadOnlyPerson;
 import seedu.address.testutil.DeleteTagDescriptorBuilder;
 
@@ -232,28 +175,37 @@ public class DeleteTagCommandTest {
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
+    public void execute_duplicatePersonUnfilteredList_failure() {
+        Person firstPerson = new Person(model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()));
+        DeleteTagDescriptor descriptor = new DeleteTagDescriptorBuilder(firstPerson).build();
+        DeleteTagCommand deleteTagCommand = prepareCommand(INDEX_SECOND_PERSON, descriptor);
+
+        assertCommandFailure(deleteTagCommand, model, DeleteTagCommand.MESSAGE_NOT_EXISTING_TAGS);
+    }
+
+    @Test
     public void execute_duplicatePersonFilteredList_failure() {
         showFirstPersonOnly(model);
 
         // edit person in filtered list into a duplicate in address book
         ReadOnlyPerson personInList = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        DeleteTagCommand editCommand = prepareCommand(INDEX_FIRST_PERSON,
+        DeleteTagCommand deleteTagCommand = prepareCommand(INDEX_FIRST_PERSON,
                 new DeleteTagDescriptorBuilder(personInList).build());
 
-        assertCommandFailure(editCommand, model, DeleteTagCommand.MESSAGE_NOT_EXISTING_TAGS);
+        assertCommandFailure(deleteTagCommand, model, DeleteTagCommand.MESSAGE_NOT_EXISTING_TAGS);
     }
 
     @Test
     public void execute_invalidPersonIndexUnfilteredList_failure() {
         Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         DeleteTagDescriptor descriptor = new DeleteTagDescriptorBuilder().withTags(VALID_TAG_HUSBAND).build();
-        DeleteTagCommand editCommand = prepareCommand(outOfBoundIndex, descriptor);
+        DeleteTagCommand deleteTagCommand = prepareCommand(outOfBoundIndex, descriptor);
 
-        assertCommandFailure(editCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(deleteTagCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     /**
-     * Edit filtered list where index is larger than size of filtered list,
+     * Delete the tags of  filtered list where index is larger than size of filtered list,
      * but smaller than size of address book
      */
     @Test
@@ -263,11 +215,25 @@ public class DeleteTagCommandTest {
         // ensures that outOfBoundIndex is still in bounds of address book list
         assertTrue(outOfBoundIndex.getZeroBased() < model.getAddressBook().getPersonList().size());
 
-        DeleteTagCommand editCommand = prepareCommand(outOfBoundIndex,
+        DeleteTagCommand deleteTagCommand = prepareCommand(outOfBoundIndex,
                 new DeleteTagDescriptorBuilder().withTags(VALID_TAG_HUSBAND).build());
 
-        assertCommandFailure(editCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertCommandFailure(deleteTagCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
+
+
+    @Test
+    public void checkTagDeletedPerson() {
+
+        ReadOnlyPerson personInList = model.getAddressBook().getPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        DeleteTagDescriptor descriptor = new DeleteTagDescriptorBuilder().withTags(VALID_TAG_HUSBAND)
+                .build();
+        DeleteTagCommand command = new DeleteTagCommand(INDEX_SECOND_PERSON, descriptor);
+        ReadOnlyPerson changed = command.createTagDeletedPerson(personInList, descriptor);
+        assertTrue(!changed.getTags().isEmpty());
+    }
+
+
 
     @Test
     public void equals() {
@@ -293,13 +259,13 @@ public class DeleteTagCommandTest {
      * Returns an {@code DeleteTagCommand} with parameters {@code index} and {@code descriptor}
      */
     private DeleteTagCommand prepareCommand(Index index, DeleteTagDescriptor descriptor) {
-        DeleteTagCommand editCommand = new DeleteTagCommand(index, descriptor);
-        editCommand.setData(model, new CommandHistory(), new UndoRedoStack());
-        return editCommand;
+        DeleteTagCommand deleteTagCommand = new DeleteTagCommand(index, descriptor);
+        deleteTagCommand.setData(model, new CommandHistory(), new UndoRedoStack());
+        return deleteTagCommand;
     }
 }
 ```
-###### /java/seedu/address/logic/commands/DeleteTagDescriptorTest.java
+###### \java\seedu\address\logic\commands\DeleteTagDescriptorTest.java
 ``` java
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -339,7 +305,7 @@ public class DeleteTagDescriptorTest {
     }
 }
 ```
-###### /java/seedu/address/logic/commands/FindTagCommandTest.java
+###### \java\seedu\address\logic\commands\FindTagCommandTest.java
 ``` java
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -437,7 +403,25 @@ public class FindTagCommandTest {
     }
 }
 ```
-###### /java/seedu/address/logic/parser/DeleteTagCommandParserTest.java
+###### \java\seedu\address\logic\parser\AddressBookParserTest.java
+``` java
+    @Test
+    public void parseCommand_findTag() throws Exception {
+
+        List<String> keywords = Arrays.asList("friends");
+        final FindTagCommand command = new FindTagCommand(new TagContainsKeywordsPredicate(Arrays.asList("friends")));
+        assertEquals(command, new FindTagCommand(new TagContainsKeywordsPredicate(keywords)));
+    }
+
+
+    @Test
+    public void parseCommand_backup() throws Exception {
+        assertTrue(parser.parseCommand(BackUpCommand.COMMAND_WORD) instanceof BackUpCommand);
+        assertTrue(parser.parseCommand(BackUpCommand.COMMAND_WORD + " 3") instanceof BackUpCommand);
+    }
+
+```
+###### \java\seedu\address\logic\parser\DeleteTagCommandParserTest.java
 ``` java
 import static seedu.address.commons.core.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
@@ -502,7 +486,7 @@ public class DeleteTagCommandParserTest {
 
 }
 ```
-###### /java/seedu/address/logic/parser/FindTagCommandParserTest.java
+###### \java\seedu\address\logic\parser\FindTagCommandParserTest.java
 ``` java
 import static seedu.address.commons.core.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -538,7 +522,92 @@ public class FindTagCommandParserTest {
 
 }
 ```
-###### /java/seedu/address/testutil/DeleteTagDescriptorBuilder.java
+###### \java\seedu\address\storage\StorageManagerTest.java
+``` java
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+
+import java.io.IOException;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import seedu.address.commons.events.model.AddressBookChangedEvent;
+import seedu.address.commons.events.model.BackUpEvent;
+import seedu.address.commons.events.storage.DataSavingExceptionEvent;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.UserPrefs;
+import seedu.address.ui.testutil.EventsCollectorRule;
+
+public class StorageManagerTest {
+
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
+    @Rule
+    public final EventsCollectorRule eventsCollectorRule = new EventsCollectorRule();
+
+    private StorageManager storageManager;
+
+    @Before
+    public void setUp() {
+        XmlAddressBookStorage addressBookStorage = new XmlAddressBookStorage(getTempFilePath("ab"));
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(getTempFilePath("prefs"));
+        storageManager = new StorageManager(addressBookStorage, userPrefsStorage);
+    }
+
+    private String getTempFilePath(String fileName) {
+        return testFolder.getRoot().getPath() + fileName;
+    }
+
+
+    @Test
+    public void prefsReadSave() throws Exception {
+        /*
+         * Note: This is an integration test that verifies the StorageManager is properly wired to the
+         * {@link JsonUserPrefsStorage} class.
+         * More extensive testing of UserPref saving/reading is done in {@link JsonUserPrefsStorageTest} class.
+         */
+        UserPrefs original = new UserPrefs();
+        original.setGuiSettings(300, 600, 4, 6);
+        storageManager.saveUserPrefs(original);
+        UserPrefs retrieved = storageManager.readUserPrefs().get();
+        assertEquals(original, retrieved);
+    }
+
+    @Test
+    public void addressBookReadSave() throws Exception {
+        /*
+         * Note: This is an integration test that verifies the StorageManager is properly wired to the
+         * {@link XmlAddressBookStorage} class.
+         * More extensive testing of UserPref saving/reading is done in {@link XmlAddressBookStorageTest} class.
+         */
+        AddressBook original = getTypicalAddressBook();
+        storageManager.saveAddressBook(original);
+        ReadOnlyAddressBook retrieved = storageManager.readAddressBook().get();
+        assertEquals(original, new AddressBook(retrieved));
+    }
+
+    @Test
+    public void getAddressBookFilePath() {
+        assertNotNull(storageManager.getAddressBookFilePath());
+    }
+
+    @Test
+    public void handleAddressBookChangedEvent_exceptionThrown_eventRaised() {
+        // Create a StorageManager while injecting a stub that  throws an exception when the save method is called
+        Storage storage = new StorageManager(new XmlAddressBookStorageExceptionThrowingStub("dummy"),
+                                             new JsonUserPrefsStorage("dummy"));
+        storage.handleAddressBookChangedEvent(new AddressBookChangedEvent(new AddressBook()));
+        assertTrue(eventsCollectorRule.eventsCollector.getMostRecent() instanceof DataSavingExceptionEvent);
+    }
+
+```
+###### \java\seedu\address\testutil\DeleteTagDescriptorBuilder.java
 ``` java
 import java.util.Arrays;
 
@@ -585,6 +654,32 @@ public class DeleteTagDescriptorBuilder {
 
     public DeleteTagDescriptor build() {
         return descriptor;
+    }
+}
+```
+###### \java\seedu\address\ui\ClearConfirmationTest.java
+``` java
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.testfx.api.FxToolkit;
+
+public class ClearConfirmationTest extends GuiUnitTest {
+
+    private ClearConfirmation clearConfirmation;
+
+    @Before
+    public void setUp() throws Exception {
+        guiRobot.interact(() -> clearConfirmation = new ClearConfirmation());
+
+        FxToolkit.showStage();
+    }
+
+    @Test
+    public void display() {
+        ClearConfirmation expectedClearConfirmation = clearConfirmation;
+        assertEquals(expectedClearConfirmation, clearConfirmation);
     }
 }
 ```

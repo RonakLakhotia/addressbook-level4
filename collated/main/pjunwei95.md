@@ -1,8 +1,8 @@
 # pjunwei95
-###### /java/seedu/address/commons/events/model/BackUpEvent.java
+###### \java\seedu\address\commons\events\model\BackUpEvent.java
 ``` java
 /**
- * An event requesting to backup the address book.
+ * Indicates a request to backup Weaver
  */
 public class BackUpEvent extends BaseEvent {
 
@@ -19,7 +19,7 @@ public class BackUpEvent extends BaseEvent {
 
 }
 ```
-###### /java/seedu/address/commons/util/StringUtil.java
+###### \java\seedu\address\commons\util\StringUtil.java
 ``` java
     /**
      * Returns true if the {@code tagSet} contains the {@code word}.
@@ -83,7 +83,7 @@ public class BackUpEvent extends BaseEvent {
     }
 }
 ```
-###### /java/seedu/address/logic/commands/BackUpCommand.java
+###### \java\seedu\address\logic\commands\BackUpCommand.java
 ``` java
 /**
  * Backup the Address Book
@@ -118,27 +118,7 @@ public class BackUpCommand extends UndoableCommand {
     }
 }
 ```
-###### /java/seedu/address/logic/commands/CancelClearCommand.java
-``` java
-import static java.util.Objects.requireNonNull;
-
-/**
- * Clears the address book.
- */
-public class CancelClearCommand extends Command {
-
-    public static final String COMMAND_WORD = "clear";
-    public static final String MESSAGE_FAILURE = "Address book has not been cleared!";
-
-
-    @Override
-    public CommandResult execute() {
-        requireNonNull(model);
-        return new CommandResult(MESSAGE_FAILURE);
-    }
-}
-```
-###### /java/seedu/address/logic/commands/ClearCommand.java
+###### \java\seedu\address\logic\commands\ClearCommand.java
 ``` java
 import static java.util.Objects.requireNonNull;
 
@@ -150,41 +130,52 @@ import seedu.address.model.AddressBook;
 public class ClearCommand extends UndoableCommand {
 
     public static final String COMMAND_WORD = "cls";
-    public static final String MESSAGE_SUCCESS = "Address book has been cleared!";
+    public static final String MESSAGE_SUCCESS = "Weaver has been cleared!";
 
 
     @Override
     public CommandResult executeUndoableCommand() {
         requireNonNull(model);
         model.resetData(new AddressBook());
+        model.clearBrowserPanel();
         return new CommandResult(MESSAGE_SUCCESS);
     }
 }
 ```
-###### /java/seedu/address/logic/commands/ClearPopupCommand.java
+###### \java\seedu\address\logic\commands\ClearPopupCommand.java
 ``` java
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.model.AddressBook;
+import seedu.address.ui.ClearConfirmation;
 
 /**
- * Clears the address book.
+ * Pop-ups a clear confirmation window before clearing.
+ * Confirming clears Weaver, otherwise cancels the clearing.
  */
 public class ClearPopupCommand extends UndoableCommand {
 
     public static final String COMMAND_WORD = "clear";
-    public static final String MESSAGE_SUCCESS = "Address book has been cleared!";
+    public static final String MESSAGE_CLEAR_SUCCESS = "Weaver has been cleared!";
+    public static final String MESSAGE_NOT_CLEAR_SUCCESS = "Weaver has not been cleared!";
 
 
     @Override
     public CommandResult executeUndoableCommand() {
-        requireNonNull(model);
-        model.resetData(new AddressBook());
-        return new CommandResult(MESSAGE_SUCCESS);
+        ClearConfirmation clearConfirmation = new ClearConfirmation();
+        if (clearConfirmation.isClearCommand()) {
+            requireNonNull(model);
+            model.resetData(new AddressBook());
+            model.clearBrowserPanel();
+            return new CommandResult(MESSAGE_CLEAR_SUCCESS);
+
+        } else {
+            return new CommandResult(MESSAGE_NOT_CLEAR_SUCCESS);
+        }
     }
 }
 ```
-###### /java/seedu/address/logic/commands/DeleteTagCommand.java
+###### \java\seedu\address\logic\commands\DeleteTagCommand.java
 ``` java
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -314,7 +305,7 @@ public class DeleteTagCommand extends UndoableCommand {
      * Creates and returns a {@code Person} with the tags of {@code personToEdit}
      * deleted with {@code DeleteTagDescriptor}.
      */
-    private static Person createTagDeletedPerson(ReadOnlyPerson personToEdit,
+    public Person createTagDeletedPerson(ReadOnlyPerson personToEdit,
                                              DeleteTagDescriptor deleteTagDescriptor) {
         assert personToEdit != null;
 
@@ -375,7 +366,7 @@ public class DeleteTagCommand extends UndoableCommand {
     }
 }
 ```
-###### /java/seedu/address/logic/commands/FindTagCommand.java
+###### \java\seedu\address\logic\commands\FindTagCommand.java
 ``` java
 import seedu.address.model.tag.TagContainsKeywordsPredicate;
 
@@ -390,7 +381,7 @@ public class FindTagCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose tag(s) contain any of "
             + "the specified keywords (case-sensitive) and displays them as a list with index numbers.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+            + "Example: " + COMMAND_WORD + " friends colleagues";
 
     private final TagContainsKeywordsPredicate predicate;
 
@@ -412,7 +403,7 @@ public class FindTagCommand extends Command {
     }
 }
 ```
-###### /java/seedu/address/logic/parser/AddressBookParser.java
+###### \java\seedu\address\logic\parser\AddressBookParser.java
 ``` java
         case FindTagCommand.COMMAND_WORD:
             return new FindTagCommandParser().parse(arguments);
@@ -421,19 +412,14 @@ public class FindTagCommand extends Command {
             return new DeleteTagCommandParser().parse(arguments);
 
         case ClearPopupCommand.COMMAND_WORD: {
-            ClearConfirmation clearConfirmation = new ClearConfirmation();
-            if (clearConfirmation.isClearCommand()) {
-                return new ClearPopupCommand();
-            } else {
-                return new CancelClearCommand();
-            }
+            return new ClearPopupCommand();
         }
 
         case BackUpCommand.COMMAND_WORD:
             return new BackUpCommand();
 
 ```
-###### /java/seedu/address/logic/parser/DeleteTagCommandParser.java
+###### \java\seedu\address\logic\parser\DeleteTagCommandParser.java
 ``` java
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.core.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
@@ -506,7 +492,7 @@ public class DeleteTagCommandParser implements Parser<DeleteTagCommand> {
     }
 }
 ```
-###### /java/seedu/address/logic/parser/FindTagCommandParser.java
+###### \java\seedu\address\logic\parser\FindTagCommandParser.java
 ``` java
 import static seedu.address.commons.core.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
@@ -541,62 +527,7 @@ public class FindTagCommandParser implements Parser<FindTagCommand> {
 
 }
 ```
-###### /java/seedu/address/model/tag/TagColor.java
-``` java
-    public static final String[] VALID_TAG_COLOR = {"red", "blue", "green", "teal", "aqua",
-                                                    "black", "gray", "lime", "maroon", "navy",
-                                                    "orange", "purple", "silver", "olive",
-                                                    "white", "yellow", "transparent"};
-    //@pjunwei95 until here ONLY
-    public static final String MESSAGE_TAG_COLOR_CONSTRAINTS = "Valid colors are: "
-            + Arrays.toString(VALID_TAG_COLOR);
-
-    public static final String DEFAULT_TAG_COLOR = "orange";
-
-    public final String tagColorName;
-
-    /**
-     * Validates given tagColor name.
-     *
-     * @throws IllegalValueException if the given tagColor name string is invalid.
-     */
-    public TagColor(String name) throws IllegalValueException {
-        requireNonNull(name);
-        String trimmedName = name.trim();
-        if (!isValidTagColorName(trimmedName)) {
-            throw new IllegalValueException(MESSAGE_TAG_COLOR_CONSTRAINTS);
-        }
-        this.tagColorName = trimmedName;
-    }
-
-    /**
-     * Returns true if a given string is a valid tagColor name.
-     */
-    public static boolean isValidTagColorName(String test) {
-        return Arrays.asList(VALID_TAG_COLOR).contains(test);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other == this // short circuit if same object
-                || (other instanceof TagColor // instanceof handles nulls
-                && this.tagColorName.equals(((TagColor) other).tagColorName)); // state check
-    }
-
-    @Override
-    public int hashCode() {
-        return tagColorName.hashCode();
-    }
-
-    /**
-     * Format state as text for viewing.
-     */
-    public String toString() {
-        return tagColorName;
-    }
-}
-```
-###### /java/seedu/address/model/tag/TagContainsKeywordsPredicate.java
+###### \java\seedu\address\model\tag\TagContainsKeywordsPredicate.java
 ``` java
 /**
  * Tests that a {@code ReadOnlyPerson}'s {@code Tag}(s) matches any of the keywords given.
@@ -623,7 +554,7 @@ public class TagContainsKeywordsPredicate implements Predicate<ReadOnlyPerson> {
 
 }
 ```
-###### /java/seedu/address/storage/StorageManager.java
+###### \java\seedu\address\storage\StorageManager.java
 ``` java
     @Override
     public void backupAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
@@ -643,7 +574,7 @@ public class TagContainsKeywordsPredicate implements Predicate<ReadOnlyPerson> {
 
 }
 ```
-###### /java/seedu/address/storage/XmlAddressBookStorage.java
+###### \java\seedu\address\storage\XmlAddressBookStorage.java
 ``` java
     /**
      * Similar to {@link #saveAddressBook(ReadOnlyAddressBook)}
@@ -658,171 +589,14 @@ public class TagContainsKeywordsPredicate implements Predicate<ReadOnlyPerson> {
     }
 }
 ```
-###### /java/seedu/address/ui/CommandBox.java
+###### \java\seedu\address\ui\CommandBox.java
 ``` java
-    private static final String[] suggestedWords = {"add", "delete", "edit", "help", "find", "list",
-                                                    "select", "search", "clear", "undo", "redo", "history",
-                                                    "deletetag", "findtag", "photo", "facebook", "color",
-                                                    "exit", "fs", "remark", "map"};
+    private static final String[] suggestedWords = {"add", "delete", "edit", "find",
+                                                    "select", "search", "deletetag", "findtag",
+                                                    "photo", "facebook", "color",
+                                                    "fs", "remark", "map", "theme"};
 ```
-###### /java/seedu/address/ui/CommandBox.java
-``` java
-    private final Logger logger = LogsCenter.getLogger(CommandBox.class);
-    private final Logic logic;
-    private ListElementPointer historySnapshot;
-    private AddressBookParser addressBookParser;
-
-    @FXML
-    private TextField commandTextField;
-
-    public CommandBox(Logic logic) {
-        super(FXML);
-        this.logic = logic;
-
-        // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
-        historySnapshot = logic.getHistorySnapshot();
-
-        setFontSize(FontSize.getCurrentFontSizeLabel());
-        registerAsAnEventHandler(this);
-        addressBookParser = new AddressBookParser();
-    }
-
-    /**
-     * Handles the key press event, {@code keyEvent}.
-     */
-    @FXML
-    private void handleKeyPress(KeyEvent keyEvent) {
-        logger.info("Handling key press.");
-        switch (keyEvent.getCode()) {
-        case UP:
-            // As up and down buttons will alter the position of the caret,
-            // consuming it causes the caret's position to remain unchanged
-            keyEvent.consume();
-
-            navigateToPreviousInput();
-            break;
-        case DOWN:
-            keyEvent.consume();
-            navigateToNextInput();
-            break;
-        default:
-            // let JavaFx handle the keypress
-        }
-    }
-
-    /**
-     * Updates the text field with the previous input in {@code historySnapshot},
-     * if there exists a previous input in {@code historySnapshot}
-     */
-    private void navigateToPreviousInput() {
-        assert historySnapshot != null;
-        if (!historySnapshot.hasPrevious()) {
-            return;
-        }
-
-        replaceText(historySnapshot.previous());
-    }
-
-    /**
-     * Updates the text field with the next input in {@code historySnapshot},
-     * if there exists a next input in {@code historySnapshot}
-     */
-    private void navigateToNextInput() {
-        assert historySnapshot != null;
-        if (!historySnapshot.hasNext()) {
-            return;
-        }
-
-        replaceText(historySnapshot.next());
-    }
-
-    /**
-     * Sets {@code CommandBox}'s text field with {@code text} and
-     * positions the caret to the end of the {@code text}.
-     */
-    private void replaceText(String text) {
-        commandTextField.setText(text);
-        commandTextField.positionCaret(commandTextField.getText().length());
-    }
-
-    /**
-     * Handles the Enter button pressed event.
-     */
-    @FXML
-    private void handleCommandInputChanged() {
-        try {
-            String command = commandTextField.getText();
-            CommandResult commandResult = logic.execute(command);
-            initHistory();
-            historySnapshot.next();
-            // process result of the command
-            commandTextField.setText("");
-            logger.info("Result: " + commandResult.feedbackToUser);
-            raise(new NewResultAvailableEvent(commandResult.feedbackToUser, false));
-
-        } catch (CommandException | ParseException e) {
-            initHistory();
-            // handle command failure
-            setStyleToIndicateCommandFailure();
-            logger.info("Invalid command: " + commandTextField.getText());
-            raise(new NewResultAvailableEvent(e.getMessage(), true));
-        }
-    }
-
-    /**
-     * Handle a input command by passing a string
-     */
-    public void handleCommandInputChanged(String inputCommand) {
-        try {
-            CommandResult commandResult = logic.execute(inputCommand);
-            initHistory();
-            historySnapshot.next();
-            // process result of the command
-            commandTextField.setText("");
-            logger.info("Result: " + commandResult.feedbackToUser);
-            raise(new NewResultAvailableEvent(commandResult.feedbackToUser, false));
-        } catch (CommandException | ParseException e) {
-            initHistory();
-            // handle command failure
-            setStyleToIndicateCommandFailure();
-            logger.info("Invalid command: " + inputCommand);
-            raise(new NewResultAvailableEvent(e.getMessage(), true));
-        }
-    }
-
-    /**
-     * Initializes the history snapshot.
-     */
-    private void initHistory() {
-        historySnapshot = logic.getHistorySnapshot();
-        // add an empty string to represent the most-recent end of historySnapshot, to be shown to
-        // the user if she tries to navigate past the most-recent end of the historySnapshot.
-        historySnapshot.add("");
-    }
-
-    /**
-     * Sets the command box style to use the default style.
-     */
-    private void setStyleToDefault() {
-        commandTextField.getStyleClass().remove(ERROR_STYLE_CLASS);
-    }
-
-    /**
-     * Sets the command box style to indicate a failed command.
-     */
-    private void setStyleToIndicateCommandFailure() {
-        ObservableList<String> styleClass = commandTextField.getStyleClass();
-
-        if (styleClass.contains(ERROR_STYLE_CLASS)) {
-            return;
-        }
-
-        styleClass.add(ERROR_STYLE_CLASS);
-    }
-
-```
-###### /java/seedu/address/ui/CommandBox.java
+###### \java\seedu\address\ui\CommandBox.java
 ``` java
     @FXML
     /**

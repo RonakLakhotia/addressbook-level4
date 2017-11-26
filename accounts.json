@@ -1,7 +1,0 @@
-{
-  "accountsPath" : "accounts.json",
-  "hm" : {
-    "admin" : "admin",
-    "user" : "user"
-  }
-}

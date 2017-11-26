@@ -31,11 +31,11 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
     //@@author pjunwei95
-    private static final String[] suggestedWords = {"add", "delete", "edit", "help", "find", "list",
-                                                    "select", "search", "clear", "undo", "redo", "history",
-                                                    "deletetag", "findtag", "photo", "facebook", "color",
-                                                    "exit", "fs", "remark", "map"};
-    //@@author pjunwei95
+    private static final String[] suggestedWords = {"add", "delete", "edit", "find",
+                                                    "select", "search", "deletetag", "findtag",
+                                                    "photo", "facebook", "color",
+                                                    "fs", "remark", "map", "theme"};
+    //@@author
     private final Logger logger = LogsCenter.getLogger(CommandBox.class);
     private final Logic logic;
     private ListElementPointer historySnapshot;
